@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- App Title & Branding -->
+    <title>AizenVerse - Modern Ad-Free Streaming</title>
+    <meta name="description" content="AizenVerse - Minimalist, ad-free anime streaming platform powered by custom native HLS video extraction." />
+    
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌌</text></svg>" />
+    
+    <!-- Typography: Cormorant (Serif Headlines) & Manrope (Clean UI Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link 
+      href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@300;400;500;600;700&display=swap" 
+      rel="stylesheet" 
+    />
+
+    <!-- Global CSS & Theme Variable Definitions -->
+    <style>
+      :root {
+        --void: #0B0A14;
+        --surface: #161327;
+        --surface-raised: #2A2440;
+        --moonlight: #C9C2E8;
+        --moonlight-bright: #EDEAF5;
+        --muted: #8B84A8;
+        --mirror-violet: #7C6BB8;
+        --mirror-violet-bright: #9D8FD1;
+        --glass-gold: #D4B896;
+      }
+
+      /* Baseline Reset to Prevent Layout Shift Prior to React Mounting */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--void);
+        color: var(--moonlight);
+        font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* Loading Indicator displayed before React hydrates */
+      #root:empty::before {
+        content: 'Loading AizenVerse...';
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Cormorant', serif;
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+        color: var(--muted);
+        background-color: var(--void);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- React Root Mount Point -->
+    <div id="root"></div>
+
+    <!-- Application Entry Point Script -->
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
