@@ -1,9 +1,11 @@
+// Change this URL if you host your own Consumet/Scraper instance
 const API_BASE_URL = "https://api.consumet.org/anime/gogoanime";
+
 export const searchAnime = async (query) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/${encodeURIComponent(query)}`);
+    const response = await fetch(`${API_BASE_URL}/search/${encodeURIComponent(query)}`);
     const data = await response.json();
-    return data.results || [];
+    return data.results || data || [];
   } catch (error) {
     console.error("Error searching anime:", error);
     return [];
