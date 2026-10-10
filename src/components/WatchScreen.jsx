@@ -1,93 +1,94 @@
 import React, { useState, useEffect } from 'react';
 import { CyberPlayer } from './CyberPlayer';
-import { getEpisodeSources } from '../services/api';
+import { getStreamUrl } from '../services/api';
 
 export const WatchScreen = ({ animeTitle, episodeList, currentEpisodeId, onEpisodeChange }) => {
-  const [streamUrl, setStreamUrl] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [currentEpIndex, setCurrentEpIndex] = useState(0);
+  const [streamData, setStreamData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [debugLog, setDebugLog] = useState('Initializing...');
 
-  // Fetch episode stream source whenever currentEpisodeId changes
   useEffect(() => {
-  // Test if Video.js works natively on your phone
-  setStreamData({
-    url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
-  });
-  setLoading(false);
-}, [currentEpisodeId]);
-
+    let isMounted = true;
+    const fetchStream = async () => {
+      setLoading(true);
+      setDebugLog(`Fetching episode ID: ${currentEpisodeId}...`);
+      
       try {
-        const data = await getEpisodeSources(currentEpisodeId);
-
-        if (data && data.sources && data.sources.length > 0) {
-          // Find 1080p, 720p, or default source
-          const bestSource = 
-            data.sources.find(s => s.quality === '1080p') ||
-            data.sources.find(s => s.quality === '720p') ||
-            data.sources.find(s => s.quality === 'default') ||
-            data.sources[0];
-
-          setStreamUrl(bestSource.url);
-        } else {
-          setErrorMessage('No valid stream found for this episode.');
+        const result = await getStreamUrl(currentEpisodeId);
+        if (isMounted) {
+          if (result && result.url) {
+            setDebugLog(`Success! URL found.`);
+            setStreamData(result);
+          } else {
+            setDebugLog(`API returned null for ID: ${currentEpisodeId}`);
+          }
         }
       } catch (err) {
-        console.error('Failed to load stream:', err);
-        setErrorMessage('Failed to connect to video server.');
+        if (isMounted) {
+          setDebugLog(`Error: ${err.message}`);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
-    fetchStream();
+    if (currentEpisodeId) {
+      fetchStream();
+    }
+
+    return () => { isMounted = false; };
   }, [currentEpisodeId]);
 
-  // Handle Episode Controls (Prev/Next)
-  const handleNext = () => {
-    if (episodeList && currentEpIndex < episodeList.length - 1) {
-      const nextIndex = currentEpIndex + 1;
-      setCurrentEpIndex(nextIndex);
-      if (onEpisodeChange) onEpisodeChange(episodeList[nextIndex].id);
-    }
-  };
-
-  const handlePrev = () => {
-    if (episodeList && currentEpIndex > 0) {
-      const prevIndex = currentEpIndex - 1;
-      setCurrentEpIndex(prevIndex);
-      if (onEpisodeChange) onEpisodeChange(episodeList[prevIndex].id);
-    }
-  };
+  const currentEpIndex = episodeList.findIndex(e => e.id === currentEpisodeId);
+  const currentEp = episodeList[currentEpIndex];
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-4 space-y-4">
-      {/* Loading Overlay */}
-      {isLoading ? (
-        <div className="w-full aspect-video bg-[#05070a] rounded-2xl border border-cyan-500/30 flex flex-col items-center justify-center gap-3">
-          <div className="w-10 h-10 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-xs font-mono text-cyan-400">Fetching Stream URL...</span>
+    <div className="max-w-6xl mx-auto p-4 space-y-4">
+      {/* Player or Error/Debug View */}
+      {loading ? (
+        <div className="w-full aspect-video bg-[#090d16] rounded-xl border border-cyan-500/20 flex flex-col items-center justify-center gap-3">
+          <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs font-mono text-cyan-400 animate-pulse">CONNECTING TO STREAM...</p>
         </div>
-      ) : errorMessage ? (
-        /* Error Box */
-        <div className="w-full aspect-video bg-[#05070a] rounded-2xl border border-rose-500/30 flex flex-col items-center justify-center gap-2 p-6 text-center">
-          <p className="text-rose-400 text-sm font-semibold">{errorMessage}</p>
-          <button 
-            onClick={() => onEpisodeChange(currentEpisodeId)}
-            className="mt-2 px-4 py-1.5 bg-rose-950 text-rose-300 border border-rose-500/40 rounded text-xs hover:bg-rose-900 transition"
+      ) : streamData ? (
+        <CyberPlayer streamData={streamData} onError={() => setDebugLog("Video.js playback failed to load stream source.")} />
+      ) : (
+        <div className="w-full aspect-video bg-[#090d16] rounded-xl border border-red-500/30 flex flex-col items-center justify-center p-6 text-center space-y-2">
+          <span className="text-3xl">⚠️</span>
+          <p className="text-sm font-mono text-red-400">UNABLE TO LOAD VIDEO STREAM</p>
+          {/* Debug text printed on screen */}
+          <p className="text-xs font-mono text-cyan-300 bg-black/50 p-2 rounded border border-cyan-500/20 max-w-md break-all">
+            {debugLog}
+          </p>
+        </div>
+      )}
+
+      {/* Episode Navigation Info */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#090d16] p-4 rounded-xl border border-cyan-500/20">
+        <div>
+          <h2 className="text-lg font-bold text-white">{animeTitle}</h2>
+          <p className="text-xs font-mono text-cyan-400">
+            {currentEp ? `Episode ${currentEp.number}` : 'Episode View'}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            disabled={currentEpIndex <= 0}
+            onClick={() => onEpisodeChange(episodeList[currentEpIndex - 1].id)}
+            className="px-3 py-1.5 text-xs font-mono bg-cyan-950/50 text-cyan-300 border border-cyan-500/30 rounded disabled:opacity-40 hover:bg-cyan-900/50 transition"
           >
-            Retry Stream
+            ← PREV EP
+          </button>
+          <button
+            disabled={currentEpIndex >= episodeList.length - 1}
+            onClick={() => onEpisodeChange(episodeList[currentEpIndex + 1].id)}
+            className="px-3 py-1.5 text-xs font-mono bg-cyan-950/50 text-cyan-300 border border-cyan-500/30 rounded disabled:opacity-40 hover:bg-cyan-900/50 transition"
+          >
+            NEXT EP →
           </button>
         </div>
-      ) : (
-        /* Connected CyberPlayer */
-        <CyberPlayer
-          src={streamUrl}
-          title={`${animeTitle} - Episode ${currentEpIndex + 1}`}
-          onNextEpisode={episodeList && currentEpIndex < episodeList.length - 1 ? handleNext : null}
-          onPrevEpisode={episodeList && currentEpIndex > 0 ? handlePrev : null}
-        />
-      )}
+      </div>
     </div>
   );
 };
