@@ -10,11 +10,12 @@ export const WatchScreen = ({ animeTitle, episodeList, currentEpisodeId, onEpiso
 
   // Fetch episode stream source whenever currentEpisodeId changes
   useEffect(() => {
-    if (!currentEpisodeId) return;
-
-    const fetchStream = async () => {
-      setIsLoading(true);
-      setErrorMessage('');
+  // Test if Video.js works natively on your phone
+  setStreamData({
+    url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+  });
+  setLoading(false);
+}, [currentEpisodeId]);
 
       try {
         const data = await getEpisodeSources(currentEpisodeId);
