@@ -1,53 +1,67 @@
-import React, { useEffect, useState } from 'react';
-import { getTrendingAnime } from '../services/animeMeta';
+import React, { useCallback, useEffect, useState } from 'react';
+import { AnimeCard } from './AnimeCard';
+import { getTrendingAnime, searchAnimeMetadata } from '../services/animeMeta';
 
-export const AnimeGrid = ({ onSelectAnime }) => {
+export const AnimeGrid = ({ onSelectAnime, query = '' }) => {
   const [animeList, setAnimeList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const loadAnime = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const results = query.trim()
+        ? await searchAnimeMetadata(query)
+        : await getTrendingAnime();
+      setAnimeList(results);
+    } catch (requestError) {
+      console.error('Failed to load anime from Jikan:', requestError);
+      setAnimeList([]);
+      setError(requestError.message || 'Could not load anime right now. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [query, reloadKey]);
 
   useEffect(() => {
-    getTrendingAnime().then(data => {
-      setAnimeList(data);
-      setLoading(false);
-    });
-  }, []);
+    loadAnime();
+  }, [loadAnime]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex h-64 flex-col items-center justify-center gap-3" role="status" aria-live="polite">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
+        <p className="text-xs font-mono text-cyan-300">Loading anime…</p>
       </div>
     );
   }
 
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4">
-      {animeList.map(anime => (
-        <div 
-          key={anime.id}
-          onClick={() => onSelectAnime(anime)}
-          className="bg-[#090d16] rounded-xl overflow-hidden border border-cyan-500/20 group cursor-pointer hover:border-cyan-400 transition-all shadow-lg"
+  if (error) {
+    return (
+      <div className="mx-auto my-10 max-w-xl rounded-xl border border-amber-500/30 bg-amber-950/20 p-5 text-center" role="alert">
+        <h3 className="font-semibold text-amber-200">Anime catalog unavailable</h3>
+        <p className="mt-2 text-sm text-amber-100/80">{error}</p>
+        <button
+          type="button"
+          onClick={() => setReloadKey((key) => key + 1)}
+          className="mt-4 rounded-lg border border-amber-400/40 px-4 py-2 text-sm text-amber-100 hover:bg-amber-900/40"
         >
-          {/* High-res Poster Image */}
-          <div className="aspect-[3/4] w-full overflow-hidden relative">
-            <img 
-              src={anime.image} 
-              alt={anime.title} 
-              className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-            />
-            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-mono text-cyan-300 border border-cyan-500/30">
-              ★ {anime.score || 'N/A'}
-            </div>
-          </div>
+          Try again
+        </button>
+      </div>
+    );
+  }
 
-          {/* Title & Info */}
-          <div className="p-3 space-y-1">
-            <h3 className="text-sm font-bold text-white truncate">{anime.title}</h3>
-            <p className="text-[10px] font-mono text-cyan-400 truncate">
-              {anime.genres.slice(0, 2).join(' • ')}
-            </p>
-          </div>
-        </div>
+  if (animeList.length === 0) {
+    return <p className="py-16 text-center text-sm text-gray-400">No anime found. Try another title.</p>;
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+      {animeList.map((anime) => (
+        <AnimeCard key={anime.id} anime={anime} onSelect={onSelectAnime} />
       ))}
     </div>
   );
