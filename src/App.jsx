@@ -1,79 +1,68 @@
 import React, { useState } from 'react';
-import { AnimeGrid } from './components/AnimeGrid';
+import { ExtensionManagerScreen } from './components/ExtensionManagerScreen';
 
 export default function App() {
-  const [query, setQuery] = useState('');
-  const [submittedQuery, setSubmittedQuery] = useState('');
-  const [selectedAnime, setSelectedAnime] = useState(null);
-
-  const handleSearch = (event) => {
-    event.preventDefault();
-    setSubmittedQuery(query.trim());
-    setSelectedAnime(null);
-  };
+  const [currentTab, setCurrentTab] = useState('home');
 
   return (
-    <main className="min-h-screen bg-[#05070a] text-white">
-      <header className="sticky top-0 z-30 border-b border-cyan-500/20 bg-[#05070a]/95 px-4 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="font-mono text-2xl font-bold tracking-wider text-cyan-400">
-              AIZEN<span className="text-white">VERSE</span>
-            </h1>
-            <p className="mt-1 text-xs text-gray-400">Discover anime</p>
-          </div>
-          <form onSubmit={handleSearch} className="flex w-full gap-2 sm:max-w-md">
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search anime titles..."
-              aria-label="Search anime titles"
-              className="min-w-0 flex-1 rounded-lg border border-cyan-500/30 bg-[#090d16] px-3 py-2 text-sm text-cyan-100 placeholder-cyan-700/70 outline-none focus:border-cyan-400"
-            />
-            <button
-              type="submit"
-              className="rounded-lg border border-cyan-400/50 bg-cyan-950/60 px-4 py-2 text-sm text-cyan-200 hover:bg-cyan-900/60"
-            >
-              Search
-            </button>
-          </form>
+    <main className="min-h-screen bg-[#05070a] text-white flex flex-col">
+      <header className="sticky top-0 z-30 border-b border-cyan-500/20 bg-[#05070a]/95 px-4 py-3 backdrop-blur flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h1 className="font-mono text-xl font-bold tracking-wider text-cyan-400 cursor-pointer" onClick={() => setCurrentTab('home')}>
+            AIZEN<span className="text-white">VERSE</span>
+          </h1>
+          <span className="text-[10px] font-mono px-2 py-0.5 bg-cyan-950/80 text-cyan-300 border border-cyan-500/30 rounded">
+            SHELL v1.0
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentTab('home')}
+            className={`px-3 py-1.5 text-xs font-mono rounded border transition ${
+              currentTab === 'home'
+                ? 'bg-cyan-950 border-cyan-400 text-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.2)]'
+                : 'bg-transparent border-cyan-500/20 text-gray-400 hover:text-white'
+            }`}
+          >
+            HOME
+          </button>
+          <button
+            onClick={() => setCurrentTab('extensions')}
+            className={`px-3 py-1.5 text-xs font-mono rounded border transition ${
+              currentTab === 'extensions'
+                ? 'bg-cyan-950 border-cyan-400 text-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.2)]'
+                : 'bg-transparent border-cyan-500/20 text-gray-400 hover:text-white'
+            }`}
+          >
+            EXTENSIONS
+          </button>
         </div>
       </header>
 
-      <section className="mx-auto max-w-7xl p-4 sm:p-6">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-white">
-            {submittedQuery ? `Results for “${submittedQuery}”` : 'Top anime'}
-          </h2>
-          <p className="mt-1 text-xs text-gray-500">Catalog and poster data provided by Jikan / MyAnimeList.</p>
-        </div>
+      <div className="flex-1 flex items-center justify-center">
+        {currentTab === 'extensions' && <ExtensionManagerScreen />}
 
-        <AnimeGrid query={submittedQuery} onSelectAnime={setSelectedAnime} />
-
-        {selectedAnime && (
-          <aside className="mt-6 rounded-xl border border-cyan-500/25 bg-[#090d16] p-5" aria-live="polite">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-cyan-200">{selectedAnime.title}</h3>
-                <p className="mt-1 text-xs text-gray-400">
-                  Score: {selectedAnime.score ?? 'N/A'} · Episodes: {selectedAnime.episodes ?? 'Unknown'}
-                </p>
+        {currentTab === 'home' && (
+          <div className="max-w-4xl mx-auto p-6 text-center space-y-6">
+            <div className="bg-[#090d16] border border-cyan-500/20 rounded-2xl p-8 space-y-4 shadow-xl">
+              <div className="w-16 h-16 bg-cyan-950/50 border border-cyan-500/40 rounded-full flex items-center justify-center mx-auto text-cyan-400 text-2xl font-mono">
+                ⚡
               </div>
+              <h2 className="text-lg font-bold text-white">No Extension Repositories Linked</h2>
+              <p className="text-xs text-gray-400 max-w-md mx-auto leading-relaxed">
+                AizenVerse is operating as a clean extension shell. Head over to the Extensions tab and link a Cloudstream-compatible repository to begin.
+              </p>
               <button
-                type="button"
-                onClick={() => setSelectedAnime(null)}
-                className="rounded border border-gray-700 px-3 py-1 text-xs text-gray-300 hover:border-cyan-400"
+                onClick={() => setCurrentTab('extensions')}
+                className="px-6 py-2.5 bg-cyan-950/60 border border-cyan-400/50 text-cyan-200 text-xs font-mono rounded-xl hover:bg-cyan-900/60 transition shadow-[0_0_15px_rgba(34,211,238,0.15)]"
               >
-                Close
+                + ADD REPOSITORY
               </button>
             </div>
-            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-300">
-              {selectedAnime.synopsis || 'No synopsis is available for this title.'}
-            </p>
-          </aside>
+          </div>
         )}
-      </section>
+      </div>
     </main>
   );
 }
