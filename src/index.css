@@ -1,34 +1,66 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Kaisei+Tokumin:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+:root{
+  --bg:#07040d; --card:#0f0a1a; --line:#2a1f4a; --text:#e8e4f2; --mute:#9a90b8;
+  --violet:#6b3fd4; --violet-d:#4b2a9e; --silver:#e8e4f2; --crimson:#c1121f;
+  --g-brand:linear-gradient(90deg,#6b3fd4,#e8e4f2);
+  --g-btn:linear-gradient(90deg,#4b2a9e,#6b3fd4);
+  --g-crimson:linear-gradient(90deg,#8e0d17,#c1121f);
+  --f-head:'Cinzel',serif; --f-quote:'Kaisei Tokumin',serif; --f-body:'Inter',sans-serif;
 }
+*{box-sizing:border-box}
+html,body,#root{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--f-body)}
+button{font-family:inherit}
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #07040d;
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  overflow-x: hidden;
-  user-select: none;
-}
+/* layout */
+.app{min-height:100vh;padding:20px 16px 120px;background:radial-gradient(90% 40% at 50% 0,#2a0b4d88,transparent)}
+.top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px}
+.brand{margin:0;font:700 28px var(--f-head);letter-spacing:.14em;background:var(--g-brand);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ver{font:500 11px var(--f-head);letter-spacing:.2em;color:var(--mute)}
+.title{margin:0 0 4px;font:700 26px var(--f-head);letter-spacing:.08em;color:var(--silver)}
+.sub{margin:0 0 18px;color:var(--mute);font-size:14px}
 
-/* Scrollbar styling for smooth mobile lists */
-::-webkit-scrollbar {
-  width: 4px;
-}
+/* cards & buttons */
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 16px 16px 20px;margin-bottom:12px;overflow:hidden}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--g-brand)}
+.card h3{margin:0 0 4px;font:700 15px var(--f-head);letter-spacing:.06em;color:var(--silver)}
+.card p{margin:0;color:var(--mute);font-size:12px;word-break:break-all}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.btn{height:48px;border:0;border-radius:14px;padding:0 24px;color:#fff;background:var(--g-btn);font:700 13px var(--f-head);letter-spacing:.14em;box-shadow:0 0 22px #6b3fd455;cursor:pointer}
+.btn.crimson{background:var(--g-crimson);box-shadow:0 0 24px #c1121f66}
+.btn.ghost{background:transparent;border:1.5px solid var(--violet);color:var(--silver);box-shadow:none}
+.btn:active{transform:scale(.97)}
+.icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--silver);cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 6px;text-align:center}
+.stat b{display:block;font:700 24px var(--f-head);color:var(--silver)}
+.stat span{font:500 10px var(--f-head);letter-spacing:.14em;color:var(--mute)}
+.empty{text-align:center;margin-top:12vh}
+.empty h2{margin:12px 0 8px;font:700 26px var(--f-head);letter-spacing:.08em;color:var(--silver)}
+.empty p{max-width:320px;margin:0 auto 22px;color:var(--mute);line-height:1.6}
+.search{width:100%;height:52px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:0 18px;font:400 16px var(--f-body)}
+.search:focus{outline:0;border-color:var(--violet);box-shadow:0 0 0 3px #6b3fd455}
 
-::-webkit-scrollbar-track {
-  background: #07040d;
-}
+/* bottom nav */
+.nav{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;padding:8px;border-radius:26px;background:#0f0820e6;backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:0 10px 40px #000}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border:0;border-radius:18px;background:transparent;color:var(--mute);font:500 9px var(--f-head);letter-spacing:.1em;cursor:pointer}
+.nav button.on{background:#6b3fd433;color:var(--silver)}
+.nav button.on svg{filter:drop-shadow(0 0 8px var(--violet))}
 
-::-webkit-scrollbar-thumb {
-  background: #2e1065;
-  border-radius: 4px;
-}
+/* bottom sheets & chips (also use these in the players) */
+.sheet-bg{position:fixed;inset:0;background:#000b;display:flex;align-items:flex-end;z-index:50}
+.sheet{width:100%;background:#0a0614;border-top:2px solid var(--violet);border-radius:28px 28px 0 0;padding:26px 18px calc(24px + env(safe-area-inset-bottom))}
+.sheet h3{margin:0 0 14px;font:700 22px var(--f-head);letter-spacing:.08em;color:var(--silver)}
+.sheet .row{margin-top:14px}
+.chip{border:1px solid var(--line);color:var(--silver);background:#000;border-radius:10px;padding:12px 16px;font:500 13px var(--f-head);letter-spacing:.08em}
+.chip.active{background:var(--g-btn);border-color:transparent;color:#fff}
+
+/* intro / welcome */
+.intro{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:20px;padding:0 24px calc(40px + env(safe-area-inset-bottom));background:radial-gradient(120% 80% at 50% 25%,#2a0b4d 0%,#14041f 55%,#07000d 100%);overflow:hidden;text-align:center}
+.intro-glow{position:absolute;top:8%;left:50%;width:120vw;height:120vw;max-width:760px;max-height:760px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,#6b3fd455,transparent 65%);filter:blur(30px)}
+.intro-char{position:relative;width:min(78vw,420px);flex:1;min-height:0;object-fit:contain;object-position:bottom;filter:grayscale(1) contrast(1.25) brightness(1.05);-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent);animation:rise 1.2s ease-out both}
+.intro-name{position:relative;margin:0;font:700 22px var(--f-head);letter-spacing:.3em;background:var(--g-brand);-webkit-background-clip:text;background-clip:text;color:transparent}
+.intro-sub{position:relative;min-height:4.2em;max-width:520px;margin:0;font:500 18px/1.7 var(--f-quote);color:var(--silver);text-shadow:0 2px 12px #000;opacity:0;transform:translateY(8px);transition:opacity .6s,transform .6s}
+.intro-sub.in{opacity:1;transform:none}
+.intro .btn{position:relative;width:min(100%,320px);height:52px}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
