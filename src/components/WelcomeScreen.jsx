@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 
-// ✏️ Paste your own quotes here. "audio" is optional, e.g. '/audio/q1.mp3'.
+// Paste your own quotes here. "audio" is optional, e.g. '/audio/q1.mp3'.
 const QUOTES = [
   { text: 'Your first quote goes here.', audio: null },
   { text: 'Your second quote goes here.', audio: null },
 ];
 const SHOW_MS = 6000;
 
-export default function WelcomeScreen({ onStart }) {
+export function WelcomeScreen({ onStart }) {
   const [i, setI] = useState(0);
   const [visible, setVisible] = useState(false);
   const audioRef = useRef(null);
@@ -27,7 +27,6 @@ export default function WelcomeScreen({ onStart }) {
   return (
     <div className="intro">
       <div className="intro-glow" />
-      {/* Put your black & white character image in /public as aizen.png */}
       <img className="intro-char" src="/aizen.png" alt="" onError={(e) => (e.currentTarget.style.display = 'none')} />
       <h1 className="intro-name">AIZENVERSE</h1>
       <p className={`intro-sub ${visible ? 'in' : ''}`}>“{QUOTES[i].text}”</p>
