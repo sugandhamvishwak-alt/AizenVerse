@@ -1,21 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { parseCloudstreamRepo } from '../services/CloudstreamRepoImporter';
+import CloudstreamRepoImporter from '../services/CloudstreamRepoImporter';
 
 export const ExtensionManagerScreen = () => {
+  const [repos, setRepos] = useState([]);
   const [repoUrl, setRepoUrl] = useState('');
-  const [extensions, setExtensions] = useState([]);
+  const [repoName, setRepoName] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [installedExtensions, setInstalledExtensions] = useState([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('aizenverse_installed_extensions');
-    if (saved) {
-      setInstalledExtensions(JSON.parse(saved));
-    }
+    loadRepositories();
   }, []);
 
-  const handleAddRepository = async (e) => {
+  const loadRepositories = () => {
+    try {
+      const saved = localStorage.getItem('aizenverse_repositories');
+      setRepos(saved ? JSON.parse(saved) : [
+        { name: 'Cloudstream providers repository', url: 'https://raw.githubusercontent.com/recloudstream/providers/master/repository.json' },
+        { name: 'Mega repository', url: 'https://raw.githubusercontent.com/self-signed/repos/master/repository.json' }
+      ]);
+    } catch (e) {
+      setRepos([]);
+    }
+  };
+
+  const handleAddRepo = async (e) => {
     e.preventDefault();
     if (!repoUrl.trim()) return;
 
@@ -23,91 +33,152 @@ export const ExtensionManagerScreen = () => {
     setError('');
 
     try {
-      const parsedExtensions = await parseCloudstreamRepo(repoUrl.trim());
-      setExtensions(parsedExtensions);
+      const newRepo = {
+        name: repoName.trim() || 'Custom Repository',
+        url: repoUrl.trim()
+      };
+      const updated = [...repos, newRepo];
+      setRepos(updated);
+      localStorage.setItem('aizenverse_repositories', JSON.stringify(updated));
+
+      if (CloudstreamRepoImporter?.importRepository) {
+        await CloudstreamRepoImporter.importRepository(newRepo.url);
+      }
+
+      setRepoUrl('');
+      setRepoName('');
+      setShowAddModal(false);
     } catch (err) {
-      setError(err.message || 'Failed to load repository.');
+      setError(err.message || 'Failed to add repository.');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleInstall = (extension) => {
-    let updated;
-    const isInstalled = installedExtensions.some(ext => ext.id === extension.id);
-    
-    if (isInstalled) {
-      updated = installedExtensions.filter(ext => ext.id !== extension.id);
-    } else {
-      updated = [...installedExtensions, extension];
-    }
-    
-    setInstalledExtensions(updated);
-    localStorage.setItem('aizenverse_installed_extensions', JSON.stringify(updated));
+  const handleRemoveRepo = (index) => {
+    const updated = repos.filter((_, i) => i !== index);
+    setRepos(updated);
+    localStorage.setItem('aizenverse_repositories', JSON.stringify(updated));
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6 text-white">
-      <div className="bg-[#090d16] p-5 rounded-xl border border-cyan-500/30">
-        <h2 className="text-xl font-bold text-cyan-400 mb-2">Extension Repositories</h2>
-        <p className="text-xs text-gray-400 mb-4">
-          Add a Cloudstream-compatible repository URL to load providers dynamically.
-        </p>
-
-        <form onSubmit={handleAddRepository} className="flex gap-2">
-          <input
-            type="url"
-            value={repoUrl}
-            onChange={(e) => setRepoUrl(e.target.value)}
-            placeholder="https://raw.githubusercontent.com/.../repo.json"
-            className="flex-1 bg-black/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-sm text-cyan-100 placeholder-cyan-800 outline-none focus:border-cyan-400"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-cyan-950/60 border border-cyan-400/50 px-4 py-2 text-sm text-cyan-200 rounded-lg hover:bg-cyan-900/60 disabled:opacity-50"
-          >
-            {loading ? 'Loading...' : 'Add Repo'}
-          </button>
-        </form>
-
-        {error && <p className="text-red-400 text-xs mt-2 font-mono">{error}</p>}
+    <div style={{ padding: '16px', maxWidth: '600px', margin: '0 auto', paddingBottom: '90px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0, color: '#f3e8ff' }}>Extensions</h2>
+        <span style={{ fontSize: '12px', color: '#c084fc' }}>Repositories: {repos.length}</span>
       </div>
 
-      {extensions.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-mono text-cyan-300">Discovered Extensions ({extensions.length})</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {extensions.map((ext) => {
-              const isInstalled = installedExtensions.some(i => i.id === ext.id);
-              return (
-                <div key={ext.id} className="bg-[#090d16] p-4 rounded-xl border border-cyan-500/20 flex flex-col justify-between gap-3">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-sm text-white">{ext.name}</h4>
-                      <span className="text-[10px] font-mono px-2 py-0.5 bg-cyan-950 text-cyan-300 rounded border border-cyan-500/30">
-                        v{ext.version}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1 line-clamp-2">{ext.description}</p>
-                    <p className="text-[10px] font-mono text-cyan-600 mt-2">Author: {ext.author}</p>
-                  </div>
-                  <button
-                    onClick={() => toggleInstall(ext)}
-                    className={`w-full py-1.5 text-xs font-mono rounded border transition ${
-                      isInstalled 
-                        ? 'bg-red-950/40 border-red-500/40 text-red-300 hover:bg-red-900/40' 
-                        : 'bg-cyan-950/50 border-cyan-500/40 text-cyan-300 hover:bg-cyan-900/50'
-                    }`}
-                  >
-                    {isInstalled ? 'UNINSTALL' : 'INSTALL EXTENSION'}
-                  </button>
-                </div>
-              );
-            })}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+        {repos.map((repo, idx) => (
+          <div key={idx} style={{
+            backgroundColor: '#110a1f',
+            border: '1px solid rgba(168, 85, 247, 0.25)',
+            borderRadius: '14px',
+            padding: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ overflow: 'hidden', flex: 1, marginRight: '12px' }}>
+              <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#f3e8ff', fontWeight: 'bold' }}>{repo.name}</h4>
+              <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{repo.url}</p>
+            </div>
+            <button
+              onClick={() => handleRemoveRepo(idx)}
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#f87171',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ position: 'fixed', bottom: '80px', right: '20px', zIndex: 40 }}>
+        <button
+          onClick={() => setShowAddModal(true)}
+          style={{
+            backgroundColor: '#9333ea',
+            color: '#ffffff',
+            padding: '14px 22px',
+            borderRadius: '50px',
+            fontWeight: 'bold',
+            fontSize: '13px',
+            border: 'none',
+            boxShadow: '0 0 20px rgba(147, 51, 234, 0.4)',
+            cursor: 'pointer'
+          }}
+        >
+          + Add repository
+        </button>
+      </div>
+
+      {showAddModal && (
+        <div style={{
+          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 100
+        }}>
+          <div style={{
+            backgroundColor: '#110a1f', border: '1px solid rgba(168, 85, 247, 0.3)',
+            borderRadius: '16px', padding: '20px', width: '100%', maxWidth: '380px'
+          }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#ffffff' }}>Add Repository</h3>
+            <form onSubmit={handleAddRepo} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <input
+                type="text"
+                value={repoName}
+                onChange={(e) => setRepoName(e.target.value)}
+                placeholder="Repository Name (Optional)"
+                style={{
+                  padding: '12px', backgroundColor: '#07040d', border: '1px solid rgba(168, 85, 247, 0.3)',
+                  borderRadius: '10px', color: '#ffffff', fontSize: '12px', outline: 'none'
+                }}
+              />
+              <input
+                type="text"
+                value={repoUrl}
+                onChange={(e) => setRepoUrl(e.target.value)}
+                placeholder="Repository URL"
+                required
+                style={{
+                  padding: '12px', backgroundColor: '#07040d', border: '1px solid rgba(168, 85, 247, 0.3)',
+                  borderRadius: '10px', color: '#ffffff', fontSize: '12px', outline: 'none'
+                }}
+              />
+              {error && <p style={{ color: '#f87171', fontSize: '12px', margin: 0 }}>{error}</p>}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  style={{ padding: '10px 16px', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '12px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '10px 20px', backgroundColor: '#9333ea', color: '#ffffff',
+                    border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer'
+                  }}
+                  disabled={loading}
+                >
+                  {loading ? 'Adding...' : 'Add'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
     </div>
   );
 };
+
+export default ExtensionManagerScreen;
