@@ -54,3 +54,6 @@ export class CloudstreamRepoImporter {
     }
   }
 }
+
+// This satisfies BOTH default imports and named imports automatically
+export default CloudstreamRepoImporter;
