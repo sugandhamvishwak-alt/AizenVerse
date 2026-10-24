@@ -1,4 +1,4 @@
-export default class CloudstreamRepoImporter {
+export class CloudstreamRepoImporter {
   static async importRepository(url) {
     try {
       const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url.trim())}`;
