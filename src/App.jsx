@@ -1,46 +1,22 @@
-import React, { useState } from 'react';
-import { WelcomeScreen } from './components/WelcomeScreen';
-import { CatalogScreen } from './components/CatalogScreen';
-import { ExtensionManagerScreen } from './components/ExtensionManagerScreen';
-import { WatchScreen } from './components/WatchScreen';
-import BottomNav from './components/BottomNav';
+import { Routes, Route, Link } from 'react-router-dom';
+import ExtensionsPage from './pages/ExtensionsPage';
+import SettingsPage from './pages/SettingsPage';
 
-export default function App() {
-  const [inWelcome, setInWelcome] = useState(true);
-  const [currentTab, setCurrentTab] = useState('home');
-  const [selectedAnime, setSelectedAnime] = useState(null);
-
-  if (inWelcome) {
-    return <WelcomeScreen onStart={() => setInWelcome(false)} />;
-  }
-
-  const openAnime = (anime) => {
-    setSelectedAnime(anime);
-    setCurrentTab('watch');
-  };
-
+export function App() {
   return (
-    <main className="app">
-      {currentTab === 'home' && <CatalogScreen onSelectAnime={openAnime} />}
-      {currentTab === 'search' && <CatalogScreen onSelectAnime={openAnime} />}
-      {currentTab === 'library' && (
-        <>
-          <h2 className="title">Library</h2>
-          <p className="sub">Your bookmarks will appear here.</p>
-        </>
-      )}
-      {currentTab === 'downloads' && (
-        <>
-          <h2 className="title">Downloads</h2>
-          <p className="sub">Your downloads will appear here.</p>
-        </>
-      )}
-      {currentTab === 'settings' && <ExtensionManagerScreen />}
-      {currentTab === 'watch' && selectedAnime && (
-        <WatchScreen anime={selectedAnime} onBack={() => setCurrentTab('home')} />
-      )}
+    <div className="app-container">
+      <nav className="navbar" style={{ display: 'flex', gap: '16px', padding: '16px', background: '#110a1f' }}>
+        <Link to="/" style={{ color: '#c084fc', textDecoration: 'none' }}>Home</Link>
+        <Link to="/extensions" style={{ color: '#c084fc', textDecoration: 'none' }}>Extensions</Link>
+        <Link to="/settings" style={{ color: '#c084fc', textDecoration: 'none' }}>Settings</Link>
+      </nav>
 
-      <BottomNav tab={currentTab} onChange={setCurrentTab} />
-    </main>
+      <Routes>
+        <Route path="/extensions" element={<ExtensionsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+      </Routes>
+    </div>
   );
 }
+
+export default App;
